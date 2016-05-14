@@ -68,6 +68,7 @@ FOR I%=0 TO PRGSIZE(1,0)-1
  PRINT PRS$[0],PRS$[1],PRS$[2]
 NEXT
 FOR I%=3 TO LEN(LINES$)-1
+ 'normally, this would replace refs and rams with actual stuff. but then i abandoned it
 ' FOR I
 NEXT
 PRGEDIT 2
