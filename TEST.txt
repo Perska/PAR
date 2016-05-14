@@ -1,0 +1,25 @@
+REF COUNT AS %000
+'REF is a reference to a "ram" address.
+'in this case, it references an int.
+'there are 3 types: %integer, #real and $string
+REF COUNT2 AS #000
+REF NAME AS $000
+REF _2_MEEMOOS AS     %001
+LET COUNT 1
+LET COUNT2 0.4445
+LET NAME "HELLO"
+'LET sets a certain adresss to be something.
+'NOTICE: you have to use a referenced variable
+'or errors will occur (I think.)
+PRT COUNT
+PRT COUNT2
+PRT NAME
+'PRT is the same as PRINT. (well, not fully.)
+'it's just a debug command. yesh.
+LBL TEST
+PRT COUNT
+INC COUNT 1
+SNC 1
+GOT TEST
+'LBL defines a label. GOT is GOTO "ewww goto"
+'SNC is VSYNC

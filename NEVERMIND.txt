@@ -1,0 +1,120 @@
+OPTION STRICT
+ACLS
+VAR I%,J%,VAR$,PRS$[10]
+VAR LINES$[0],CURLN$
+VAR JUNK$,JUNK%'used for shift and etc.
+VAR REFS$[4096,2,3]
+VAR REFS%[3]
+'Perska's bad compiler prototype
+PRGEDIT 1
+PUSH LINES$,"DIM INT%[4096]"
+PUSH LINES$,"DIM REAL#[4096]"
+PUSH LINES$,"DIM STR$[4096]"
+FOR I%=0 TO PRGSIZE(1,0)-1
+ CURLN$=PRGGET$()
+ FILL PRS$,""
+ PRS$[0]=GETKEYWORD(CURLN$)
+ IF PRS$[0]=="REF" THEN
+  PRS$[1]=GETKEYWORD(CURLN$)
+  IF PRS$[1]!="" THEN
+   IF GETKEYWORD(CURLN$)=="AS" THEN
+    PRS$[2]=GETVARNAME(CURLN$)
+    IF PRS$[2]!="" THEN
+     IF PRS$[2][0]=="%" THEN
+      REFS$[REFS%[0],0,0]=PRS$[1]
+      REFS$[REFS%[0],1,0]=PRS$[2]
+      INC REFS%[0]
+     ELSEIF PRS$[2][0]=="#" THEN
+      REFS$[REFS%[1],0,1]=PRS$[1]
+      REFS$[REFS%[1],1,1]=PRS$[2]
+      INC REFS%[1]
+     ELSE
+      REFS$[REFS%[2],0,2]=PRS$[1]
+      REFS$[REFS%[2],1,2]=PRS$[2]
+      INC REFS%[2]
+     ENDIF
+    ENDIF
+   ENDIF
+  ENDIF
+ ELSEIF PRS$[0]=="LET" THEN
+  PRS$[1]=GETKEYWORD(CURLN$)
+  IF PRS$[1]!="" THEN
+   JUNK$=POP(CURLN$)
+   PUSH LINES$,PRS$[1]+"="+CURLN$+" 'LINE "+STR$(I%+1)
+  ENDIF
+ ELSEIF PRS$[0]=="PRT" THEN
+  JUNK$=POP(CURLN$)
+  PUSH LINES$,"PRINT "+CURLN$+" 'LINE "+STR$(I%+1)
+ ELSEIF PRS$[0]=="LBL" THEN
+  PRS$[1]=GETKEYWORD(CURLN$)
+  IF PRS$[1]!="" THEN
+   PUSH LINES$,"@"+PRS$[1]+" 'LINE "+STR$(I%+1)
+  ENDIF
+ ELSEIF PRS$[0]=="GOT" THEN
+  PRS$[1]=GETKEYWORD(CURLN$)
+  IF PRS$[1]!="" THEN
+   PUSH LINES$,"GOTO @"+PRS$[1]+" 'LINE "+STR$(I%+1)
+  ENDIF
+ ELSEIF PRS$[0]=="INC" THEN
+  PRS$[1]=GETKEYWORD(CURLN$)
+  IF PRS$[1]!="" THEN
+   JUNK$=POP(CURLN$)
+   PUSH LINES$,"INC "+PRS$[1]+", "+CURLN$+" 'LINE "+STR$(I%+1)
+  ENDIF
+ ELSEIF PRS$[0]=="SNC" THEN
+  JUNK$=POP(CURLN$)
+  PUSH LINES$,"VSYNC "+CURLN$+" 'LINE "+STR$(I%+1)
+ ENDIF
+ PRINT PRS$[0],PRS$[1],PRS$[2]
+NEXT
+FOR I%=3 TO LEN(LINES$)-1
+' FOR I
+NEXT
+PRGEDIT 2
+PRGDEL -1
+FOR I%=0 TO LEN(LINES$)-1
+ PRGINS LINES$[I%]
+NEXT
+
+
+DEF GETKEYWORD(PRCS$)
+ 'this returns a string with A-Z, 0-9 and/or _
+ VAR KEY$
+ VAR CURR$=PRCS$
+ VAR OK%
+ WHILE !OK%
+  IF (ASC("A")<=ASC(CURR$[0]) && ASC(CURR$[0])<=ASC("Z")) || CURR$[0]=="_" THEN
+   INC KEY$,CURR$[0]
+  ELSEIF ASC("0")<=ASC(CURR$[0]) && ASC(CURR$[0])<=ASC("9") && KEY$!="" THEN
+   INC KEY$,CURR$[0]
+  ELSEIF CURR$[0]==" " && KEY$=="" THEN
+   'no keyword found yet and there's a space,
+   'keep looking
+  ELSE 
+   OK%=1
+  ENDIF
+  JUNK$=SHIFT(CURR$)
+ WEND
+ RETURN KEY$
+END
+DEF GETVARNAME(PRCS$)
+ 'returns a parsed "ram" address
+ VAR KEY$
+ VAR CURR$=PRCS$
+ VAR OK%
+ WHILE !OK%
+  IF (PRCS$[0]=="$" || PRCS$[0]=="#" || PRCS$[0]=="%") && KEY$=="" THEN
+   INC KEY$,PRCS$[0]
+  ELSEIF ASC("A")<=ASC(CURR$[0]) && ASC(CURR$[0])<=ASC("F") && KEY$!="" THEN
+   INC KEY$,CURR$[0]
+  ELSEIF ASC("0")<=ASC(CURR$[0]) && ASC(CURR$[0])<=ASC("9") && KEY$!="" THEN
+   INC KEY$,CURR$[0]
+  ELSEIF CURR$[0]==" " && KEY$=="" THEN
+   'already said that
+  ELSE 
+   OK%=1
+  ENDIF
+  JUNK$=SHIFT(CURR$)
+ WEND
+ RETURN KEY$
+END
